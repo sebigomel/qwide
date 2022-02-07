@@ -1,16 +1,11 @@
-import "./App.css";
 import { Routes, Route } from "react-router-dom";
-import SignUp from "./Pages/SignUp";
-import Login from "./Pages/Login";
-
+import Auth from "./Components/Auth";
 function App() {
   return (
-    <div className="wrapper">
       <Routes>
-        <Route path="/" element={<Login />} />
-        <Route path="signup" element={<SignUp />} />
+        <Route path="/" element={<Auth login={true} />} />
+        <Route path="signup" element={<Auth login={false} />} />
       </Routes>
-    </div>
   );
 }
 
