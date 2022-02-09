@@ -4,15 +4,21 @@ const User = require("./models/user");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const passport = require("passport");
+const { OAuth2Client } = require("google-auth-library");
+const client = new OAuth2Client(process.env.CLIENT_ID);
 
-router.get(
-  "/user",
-  passport.authenticate("jwt", { session: false }),
-  async (req, res) => {
-    if (req.user) return res.send({ redirectUrl: "/products" });
-    else return res.sendStatus(401);
-  }
-);
+router.post("/auth/google", async (req, res) => {
+  const { token } = req.body;
+
+  const ticket = await client.verifyIdToken({
+    idToken: token,
+    audience: process.env.CLIENT_ID,
+  });
+  const { name, email, picture } = ticket.getPayload();
+
+  const existingUser = User.findOne({ email });
+  
+});
 
 router.post("/user", async (req, res) => {
   const { password, email, admin } = req.body;
