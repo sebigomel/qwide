@@ -4,7 +4,7 @@ import React from "react";
 const Logo = styled.span`
   position: absolute;
   left: 5%;
-  top: 40%;
+  top: 42%;
   font-size: 1em;
   color: #828282;
 `;
@@ -36,6 +36,7 @@ export default function Input(props) {
     <Container>
       <Logo className="material-icons">{props.logo}</Logo>
       <StyledInput
+        value={props.value}
         placeholder={props.content}
         name={name}
         type={props.type}

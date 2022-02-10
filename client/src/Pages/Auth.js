@@ -1,13 +1,27 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import styled from "styled-components";
-import server from "../Config/axios";
+import server from "../config/axios";
 import { useNavigate, Link } from "react-router-dom";
-import Input from "../Components/Input";
+import Input from "../components/Input";
 import { GoogleLogin } from "react-google-login";
 import GoogleButton from "react-google-button";
+import UserContext from "../contexts/userContext";
+
+const Alert = styled.div`
+  background-color: #ff5f5f;
+  padding: 8px;
+  border-radius: 8px;
+  font-size: 0.7em;
+  display: flex;
+  gap: 15px;
+
+  span {
+    font-size: 1.5em;
+  }
+`;
 
 const Button = styled.button`
-  background-color: #2f80ed;
+  background-color: #5b4bdf;
   color: #ffffff;
   margin-top: 20px;
   border-radius: 8px;
@@ -15,7 +29,6 @@ const Button = styled.button`
   padding: 0.6em;
   border: none;
   font-size: 0.7em;
-  font-weight: bold;
 `;
 
 const Form = styled.form`
@@ -26,8 +39,13 @@ const Form = styled.form`
 const Container = styled.div`
   display: flex;
   justify-content: center;
-  align-items: center;
   min-height: 100vh;
+  overflow: hidden;
+  align-items: flex-start;
+
+  @media only screen and (min-width: 500px) {
+    align-items: center;
+  }
 `;
 
 const Wrapper = styled.div`
@@ -37,7 +55,7 @@ const Wrapper = styled.div`
   flex-direction: column;
   justify-content: center;
   padding: 3em;
-  gap: 20px;
+  gap: 1em;
 
   @media only screen and (max-width: 500px) {
     border: none;
@@ -64,8 +82,9 @@ const Title = styled.h4`
 `;
 
 export default function Auth({ login }) {
-  const [formData, setFormData] = useState({});
+  const [formData, setFormData] = useState({ email: "", password: "" });
   let navigate = useNavigate();
+  const { user, setUser } = React.useContext(UserContext);
 
   const handleAlertClose = () => {
     let copyOfObject = { ...formData };
@@ -75,19 +94,6 @@ export default function Auth({ login }) {
       ...copyOfObject,
     }));
   };
-
-  /*   useEffect(() => {
-    try {
-      const fetchData = async () => {
-        const response = await server.get("/user");
-        return response;
-      };
-      const response = fetchData();
-      if (response.data.redirectUrl) navigate(response.data.redirectUrl);
-    } catch (err) {
-      console.log(err);
-    }
-  }, [navigate]); */
 
   const handleChange = (e) => {
     let updatedValue = {};
@@ -99,18 +105,26 @@ export default function Auth({ login }) {
   };
 
   const handleGoogleLogin = async (googleProfile) => {
-    console.log(googleProfile);
-    server.post("/auth/google", { token: googleProfile.tokenId });
+    try {
+      const response = await server.post("/user/google", {
+        token: googleProfile.tokenId,
+      });
+    } catch (err) {
+      console.log(err);
+    }
   };
 
   const handleSubmit = async (e) => {
     try {
       e.preventDefault();
+      setFormData({ email: "", password: "" });
       const response = login
         ? await server.put("/user", formData)
         : await server.post("/user", formData);
-      console.log(response.status, response.data);
-      navigate("products");
+      if (login) {
+        setUser(response.data);
+      }
+      login ? navigate("/dashboard") : navigate("/");
     } catch (err) {
       let updatedValue = {};
       updatedValue = { error: err.response.data.message };
@@ -118,7 +132,7 @@ export default function Auth({ login }) {
         ...prevData,
         ...updatedValue,
       }));
-      setTimeout(() => handleAlertClose(), 4000);
+      setTimeout(() => handleAlertClose(), 5000);
     }
   };
   return (
@@ -134,14 +148,16 @@ export default function Auth({ login }) {
             management
           </Title>
         )}
-        <Form>
+        <Form onSubmit={handleSubmit}>
           <Input
+            value={formData.email}
             content="Email"
             logo="email"
             type="email"
             handleChange={handleChange}
           />
           <Input
+            value={formData.password}
             content="Password"
             logo="lock"
             type="password"
@@ -149,6 +165,13 @@ export default function Auth({ login }) {
           />
           <Button>{!login ? "Join now" : "Login"}</Button>
         </Form>
+        {formData.error && (
+          <Alert>
+            <span className="material-icons">warning</span>
+            <div>{formData.error}</div>
+          </Alert>
+        )}
+
         <p className="helper-text">or continue with these social profile</p>
         <GoogleLogin
           clientId={process.env.REACT_APP_CLIENT_ID}
@@ -157,18 +180,26 @@ export default function Auth({ login }) {
           cookiePolicy={"single_host_origin"}
           render={(renderProps) => (
             <GoogleButton
+              type="light"
+              label={login ? "Sign in with Google" : "Sign up with Google"}
               onClick={renderProps.onClick}
               disabled={renderProps.disabled}
-              style={{ alignSelf: "center", marginTop: "15px" }}
+              style={{
+                alignSelf: "center",
+                marginTop: "15px",
+                width: "100%",
+                fontSize: "0.75em",
+                fontWeight: "500",
+              }}
             />
           )}
         />
         <p className="helper-text">
           {login ? `Don't have an account? ` : "Already a member? "}
           {login ? (
-            <Link to={"/signup"}>Login</Link>
+            <Link to={"/signup"}>Register</Link>
           ) : (
-            <Link to={"/"}>Register</Link>
+            <Link to={"/"}>Login</Link>
           )}
         </p>
       </Wrapper>
