@@ -86,6 +86,10 @@ export default function Auth({ login }) {
   let navigate = useNavigate();
   const { user, setUser } = React.useContext(UserContext);
 
+  React.useEffect(() => {
+    if (user !== "Unknown") return navigate("/dashboard");
+  }, [user, navigate]);
+
   const handleAlertClose = () => {
     let copyOfObject = { ...formData };
     delete copyOfObject["error"];
@@ -109,6 +113,7 @@ export default function Auth({ login }) {
       const response = await server.post("/user/google", {
         token: googleProfile.tokenId,
       });
+      setUser(response.data);
     } catch (err) {
       console.log(err);
     }

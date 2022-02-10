@@ -36,7 +36,7 @@ router.post("/google", async (req, res) => {
     },
     (err, token) => {
       res.cookie("token", token, { httpOnly: true });
-      res.json({ success: true });
+      res.json({ email: existingUser.email, _id: existingUser._id });
     }
   );
 });
