@@ -87,7 +87,7 @@ export default function Auth({ login }) {
   const { user, setUser } = React.useContext(UserContext);
 
   React.useEffect(() => {
-    if (user !== "Unknown") return navigate("/dashboard");
+    if (user !== "Unknown") return navigate("/");
   }, [user, navigate]);
 
   const handleAlertClose = () => {
